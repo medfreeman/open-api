@@ -122,6 +122,7 @@ export interface OpenAPIFrameworkOperationContext {
     requestValidator?: IOpenAPIRequestValidator;
     responseValidator?: IOpenAPIResponseValidator;
     securityHandler?: IOpenAPISecurityHandler;
+    contentTypeCheck?: any;
   };
   methodName: string;
   methodParameters: any[];

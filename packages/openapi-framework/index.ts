@@ -22,6 +22,7 @@ import {
 import {
   addOperationTagToApiDoc,
   allowsCoercionFeature,
+  allowsContentTypeCheckFeature,
   allowsDefaultsFeature,
   allowsFeatures,
   allowsResponseValidationFeature,
@@ -376,7 +377,7 @@ export default class OpenAPIFramework implements IOpenAPIFramework {
             : Array.isArray(this.apiDoc.consumes)
             ? this.apiDoc.consumes
             : [];
-        const operationContext: OpenAPIFrameworkOperationContext = {
+        const operationContext: any = {
           additionalFeatures: getAdditionalFeatures(
             this,
             this.logger,
@@ -415,6 +416,22 @@ export default class OpenAPIFramework implements IOpenAPIFramework {
 
           if (operationContext.allowsFeatures) {
             // add features
+            if (operationDoc.responses &&
+              allowsContentTypeCheckFeature(
+                this,
+                this.apiDoc,
+                pathModule,
+                pathDoc,
+                operationDoc
+            )) {
+              // contentTypeCheck feature
+              const contentTypeCheck = () => {
+                const contentType = operationDoc.responses['200'].content && Object.keys(operationDoc.responses['200'].content)[0];
+                return contentType;
+              }
+
+              operationContext.features.contentTypeCheck = contentTypeCheck;
+            }
             if (
               operationDoc.responses &&
               allowsResponseValidationFeature(
