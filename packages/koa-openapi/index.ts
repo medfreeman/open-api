@@ -160,8 +160,8 @@ export function initialize(args: KoaOpenAPIInitializeArgs): OpenAPIFramework {
           );
         }
 
-        if (operationCtx.features.contentTypeCheck) {
-          middleware.push(createContentTypeCheckMiddleware(operationCtx.features.contentTypeCheck))
+        if (operationCtx.features.acceptHeaderValidation) {
+          middleware.unshift(createAcceptHeaderValidationMiddleware(operationCtx.features.acceptHeaderValidation))
         }
 
         middleware.unshift(createAssignApiDocMiddleware(apiDoc, operationDoc));
@@ -226,11 +226,14 @@ function createSecurityMiddleware(handler) {
   };
 }
 
-function createContentTypeCheckMiddleware(handler) {
-  return function contentTypeCheckMiddleware(ctx: Context) {
-    const currentContentType = handler();
-    ctx.request.type !== currentContentType && ctx.throw(415, 'Unsupported media type');
-    return;
+function createAcceptHeaderValidationMiddleware(handler) {
+  return function acceptHeaderValidationMiddleware(ctx: Context) {
+    const responsesContentTypes = handler(ctx.accepts.bind(ctx));
+
+    if (responsesContentTypes === false) {
+      ctx.throw(406, 'Not Acceptable type')
+    }
+    ctx.state.responsesContentTypes = responsesContentTypes;
   }
 }
 
