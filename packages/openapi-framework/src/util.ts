@@ -49,6 +49,14 @@ function allows(docs, prop, val) {
   return ![].slice.call(docs).filter(byProperty(prop, val)).length;
 }
 
+export function allowsAcceptHeaderValidationFeature(framework: IOpenAPIFramework, ...docs) {
+  return !allows(
+    arguments,
+    `x-${framework.name}-accept_header_validation-${framework.featureType}`,
+    true
+  );
+}
+
 export function allowsContentTypeCheckFeature(framework: IOpenAPIFramework, ...docs) {
   return !allows(
     arguments,

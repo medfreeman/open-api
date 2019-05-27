@@ -22,7 +22,7 @@ import {
 import {
   addOperationTagToApiDoc,
   allowsCoercionFeature,
-  allowsContentTypeCheckFeature,
+  allowsAcceptHeaderValidationFeature,
   allowsDefaultsFeature,
   allowsFeatures,
   allowsResponseValidationFeature,
@@ -417,21 +417,38 @@ export default class OpenAPIFramework implements IOpenAPIFramework {
           if (operationContext.allowsFeatures) {
             // add features
             if (operationDoc.responses &&
-              allowsContentTypeCheckFeature(
+              allowsAcceptHeaderValidationFeature(
                 this,
                 this.apiDoc,
                 pathModule,
                 pathDoc,
                 operationDoc
             )) {
-              // contentTypeCheck feature
-              const contentTypeCheck = () => {
-                const contentType = operationDoc.responses['200'].content && Object.keys(operationDoc.responses['200'].content)[0];
-                return contentType;
+              // acceptHeaderValidation feature
+              const acceptHeaderValidation = (acceptsFunction) => {
+                const responsesContentTypes: {[statusCode: string]: Array<string>} = {};
+                const responses = operationDoc.responses;
+
+                const acceptableContentTypesByResponse = Object.keys(responses)
+                  .map(statusCode => {
+                    if (responses[statusCode].content === undefined) {
+                      responsesContentTypes[statusCode] = [];
+                      return [];
+                    } else {
+                      responsesContentTypes[statusCode] = Object.keys(responses[statusCode].content);
+                      return Object.keys(responses[statusCode].content);
+                    }
+                  })
+                  .reduce<Array<String>>((acc, types) => [...acc, ...types], [])
+                  .filter((item, position, arr) => arr.indexOf(item) === position)
+
+                if (acceptableContentTypesByResponse.length === 0) return true;
+                else return acceptsFunction(acceptableContentTypesByResponse) && responsesContentTypes;
               }
 
-              operationContext.features.contentTypeCheck = contentTypeCheck;
+              operationContext.features.acceptHeaderValidation = acceptHeaderValidation;
             }
+
             if (
               operationDoc.responses &&
               allowsResponseValidationFeature(
