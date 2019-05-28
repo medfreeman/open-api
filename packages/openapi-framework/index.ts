@@ -426,24 +426,23 @@ export default class OpenAPIFramework implements IOpenAPIFramework {
             )) {
               // acceptHeaderValidation feature
               const acceptHeaderValidation = (acceptsFunction) => {
-                const responsesContentTypes: {[statusCode: string]: Array<string>} = {};
-                const responses = operationDoc.responses;
+                const contentTypesByStatusCode = Object.entries(operationDoc.responses)
+                  .reduce(
+                    (acc, [statusCode, responseProperties]) => ({
+                      ...acc,
+                      [statusCode]:
+                        (responseProperties as any).content !== undefined
+                          ? acceptsFunction(Object.keys((responseProperties as any).content))
+                          : []
+                    }),
+                    {}
+                  );
 
-                const acceptableContentTypesByResponse = Object.keys(responses)
-                  .map(statusCode => {
-                    if (responses[statusCode].content === undefined) {
-                      responsesContentTypes[statusCode] = [];
-                      return [];
-                    } else {
-                      responsesContentTypes[statusCode] = Object.keys(responses[statusCode].content);
-                      return Object.keys(responses[statusCode].content);
-                    }
-                  })
-                  .reduce<Array<String>>((acc, types) => [...acc, ...types], [])
-                  .filter((item, position, arr) => arr.indexOf(item) === position)
-
-                if (acceptableContentTypesByResponse.length === 0) return true;
-                else return acceptsFunction(acceptableContentTypesByResponse) && responsesContentTypes;
+                return Object.values(contentTypesByStatusCode).some(
+                  contentType => contentType === false
+                )
+                  ? false
+                  : contentTypesByStatusCode;
               }
 
               operationContext.features.acceptHeaderValidation = acceptHeaderValidation;
