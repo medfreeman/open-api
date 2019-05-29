@@ -126,7 +126,7 @@ export interface OpenAPIFrameworkOperationContext {
     requestValidator?: IOpenAPIRequestValidator;
     responseValidator?: IOpenAPIResponseValidator;
     securityHandler?: IOpenAPISecurityHandler;
-    acceptHeaderValidation?: (acceptsFunction: any) => (false | IContentTypesByStatusCode);
+    acceptHeaderValidator?: (acceptsFunction: (contentType: string | string[]) => (string | false)) => (false | IContentTypesByStatusCode);
   };
   methodName: string;
   methodParameters: any[];
