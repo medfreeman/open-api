@@ -52,15 +52,7 @@ function allows(docs, prop, val) {
 export function allowsAcceptHeaderValidationFeature(framework: IOpenAPIFramework, ...docs) {
   return !allows(
     arguments,
-    `x-${framework.name}-accept_header_validation-${framework.featureType}`,
-    true
-  );
-}
-
-export function allowsContentTypeCheckFeature(framework: IOpenAPIFramework, ...docs) {
-  return !allows(
-    arguments,
-    `x-${framework.name}-content_type_check-${framework.featureType}`,
+    `x-${framework.name}-accept-header-validation-${framework.featureType}`,
     true
   );
 }

@@ -10,6 +10,7 @@ import { Logger } from 'ts-log';
 import BasePath from './src/BasePath';
 import {
   ConsoleDebugAdapterLogger,
+  IContentTypesByStatusCode,
   IOpenAPIFramework,
   OpenAPIFrameworkAPIContext,
   OpenAPIFrameworkArgs,
@@ -377,7 +378,7 @@ export default class OpenAPIFramework implements IOpenAPIFramework {
             : Array.isArray(this.apiDoc.consumes)
             ? this.apiDoc.consumes
             : [];
-        const operationContext: any = {
+        const operationContext: OpenAPIFrameworkOperationContext = {
           additionalFeatures: getAdditionalFeatures(
             this,
             this.logger,
