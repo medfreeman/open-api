@@ -10,7 +10,6 @@ import { Logger } from 'ts-log';
 import BasePath from './src/BasePath';
 import {
   ConsoleDebugAdapterLogger,
-  IContentTypesByStatusCode,
   IOpenAPIFramework,
   OpenAPIFrameworkAPIContext,
   OpenAPIFrameworkArgs,
