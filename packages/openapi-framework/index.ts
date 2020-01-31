@@ -22,7 +22,7 @@ import {
 import {
   addOperationTagToApiDoc,
   allowsCoercionFeature,
-  allowsAcceptHeaderValidatorFeature,
+  allowsAcceptHeaderValidationFeature,
   allowsDefaultsFeature,
   allowsFeatures,
   allowsResponseValidationFeature,
@@ -416,34 +416,39 @@ export default class OpenAPIFramework implements IOpenAPIFramework {
 
           if (operationContext.allowsFeatures) {
             // add features
-            if (operationDoc.responses &&
-              allowsAcceptHeaderValidatorFeature(
+            if (
+              operationDoc.responses &&
+              allowsAcceptHeaderValidationFeature(
                 this,
                 this.apiDoc,
                 pathModule,
                 pathDoc,
                 operationDoc
-            )) {
+              )
+            ) {
               // acceptHeaderValidator feature
-              const acceptHeaderValidator = (acceptsFunction) => {
-                const contentTypesByStatusCode = Object.entries(operationDoc.responses)
-                  .reduce(
-                    (acc, [statusCode, responseProperties]) => ({
-                      ...acc,
-                      [statusCode]:
-                        (responseProperties as any).content !== undefined
-                          ? acceptsFunction(Object.keys((responseProperties as any).content))
-                          : []
-                    }),
-                    {}
-                  );
+              const acceptHeaderValidator = acceptsFunction => {
+                const contentTypesByStatusCode = Object.entries(
+                  operationDoc.responses
+                ).reduce(
+                  (acc, [statusCode, responseProperties]) => ({
+                    ...acc,
+                    [statusCode]:
+                      (responseProperties as any).content !== undefined
+                        ? acceptsFunction(
+                            Object.keys((responseProperties as any).content)
+                          )
+                        : []
+                  }),
+                  {}
+                );
 
                 return Object.values(contentTypesByStatusCode).some(
                   contentType => contentType === false
                 )
                   ? false
                   : contentTypesByStatusCode;
-              }
+              };
 
               operationContext.features.acceptHeaderValidator = acceptHeaderValidator;
             }
