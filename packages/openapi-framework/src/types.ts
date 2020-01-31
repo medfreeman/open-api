@@ -111,7 +111,7 @@ export interface OpenAPIFrameworkPathContext {
 }
 
 export interface IContentTypesByStatusCode {
-  [statusCode: string]: string;
+  [statusCode: string]: string | undefined;
 }
 
 export interface OpenAPIFrameworkOperationContext {
@@ -126,7 +126,9 @@ export interface OpenAPIFrameworkOperationContext {
     requestValidator?: IOpenAPIRequestValidator;
     responseValidator?: IOpenAPIResponseValidator;
     securityHandler?: IOpenAPISecurityHandler;
-    acceptHeaderValidator?: (acceptsFunction: (contentType: string | string[]) => (string | false)) => (false | IContentTypesByStatusCode);
+    acceptHeaderValidator?: (
+      acceptsFunction: (contentType: string | string[]) => string | false
+    ) => false | IContentTypesByStatusCode;
   };
   methodName: string;
   methodParameters: any[];
