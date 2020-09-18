@@ -119,41 +119,51 @@ export default class OpenAPISecurityHandler implements IOpenAPISecurityHandler {
 
   public async handle(request): Promise<void> {
     const operationSecurity = this.operationSecurity;
-    return this.securitySets
-      .reduce((promiseChain: Promise<boolean>, currentTask: SecuritySet[]) => {
-        return promiseChain.then(
-          (result: boolean): Promise<boolean> => {
-            if (!result) {
-              const resultPromises: (
-                | Promise<boolean>
-                | boolean
-              )[] = currentTask.map((securitySet: SecuritySet) => {
-                return securitySet.handler(
-                  request,
-                  securitySet.scopes,
-                  securitySet.definition
-                );
-              });
-              return Promise.all(resultPromises).then((results: boolean[]) => {
-                /* tslint:disable-next-line:no-shadowed-variable */
-                return results.filter((result) => !result).length === 0;
-              });
-            }
-            return Promise.resolve(result);
+
+    let abort = false;
+    const results = await this.securitySets.reduce<
+      Promise<ReadonlyArray<boolean | Error>>
+    >(
+      async (
+        promiseChain: Promise<ReadonlyArray<boolean>>,
+        currentTask: SecuritySet[]
+      ) => {
+        const resolvedChain = await promiseChain;
+        if (abort === true) {
+          return resolvedChain;
+        }
+
+        const securitySet = currentTask[0];
+
+        try {
+          const result = await securitySet.handler(
+            request,
+            securitySet.scopes,
+            securitySet.definition
+          );
+          if (result === true) {
+            abort = true;
           }
-        );
-      }, Promise.resolve(false))
-      .then((result) => {
-        if (!result) {
-          return Promise.reject({
+
+          return Array.prototype.concat(resolvedChain, [result]);
+        } catch (err) {
+          return Array.prototype.concat(resolvedChain, [err as Error]);
+        }
+      },
+      Promise.resolve([]) as Promise<ReadonlyArray<boolean>>
+    );
+
+    return results.some((result) => result === true)
+      ? Promise.resolve()
+      : Promise.reject(
+          results.find((result) => result instanceof Error) ?? {
             status: 401,
             message:
               'No security handlers returned an acceptable response: ' +
               operationSecurity.map(toAuthenticationScheme).join(' OR '),
             errorCode: 'authentication.openapi.security',
-          });
-        }
-      });
+          }
+        );
   }
 }
 
