@@ -147,13 +147,6 @@ export default class OpenAPISecurityHandler implements IOpenAPISecurityHandler {
 
           return Array.prototype.concat(resolvedChain, [result]);
         } catch (err) {
-          if (
-            !(err instanceof Error) ||
-            !('statusCode' in err) ||
-            err['statusCode'] >= 500
-          ) {
-            throw err;
-          }
           return Array.prototype.concat(resolvedChain, [err as Error]);
         }
       },
